@@ -22,7 +22,7 @@ func BenchmarkPathPacketConstruction(b *testing.B) {
 	)
 
 	for i := 0; i < NumMaxHops; i++ {
-		privKey, err := btcec.NewPrivateKey(btcec.S256())
+		privKey, err := secp256k1.GeneratePrivateKey()
 		if err != nil {
 			b.Fatalf("unable to generate key: %v", privKey)
 		}
