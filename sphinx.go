@@ -288,14 +288,16 @@ func generateSharedSecrets(paymentPath []*secp256k1.PublicKey,
 	return hopSharedSecrets
 }
 
-// NewOnionPacket creates a new onion packet which is capable of
-// obliviously routing a message through the mix-net path outline by
-// 'paymentPath'.
-func NewOnionPacket(paymentPath []*secp256k1.PublicKey, sessionKey *secp256k1.PrivateKey,
-	hopsData []HopData, assocData []byte) (*OnionPacket, error) {
+// NewOnionPacket creates a new onion packet which is capable of obliviously
+// routing a message through the mix-net path outline by 'paymentPath'.
+func NewOnionPacket(paymentPath *PaymentPath, sessionKey *secp256k1.PrivateKey,
+	assocData []byte) (*OnionPacket, error) {
 
-	numHops := len(paymentPath)
-	hopSharedSecrets := generateSharedSecrets(paymentPath, sessionKey)
+	numHops := paymentPath.TrueRouteLength()
+
+	hopSharedSecrets := generateSharedSecrets(
+		paymentPath.NodeKeys(), sessionKey,
+	)
 
 	// Generate the padding, called "filler strings" in the paper.
 	filler := generateHeaderPadding(
@@ -322,7 +324,7 @@ func NewOnionPacket(paymentPath []*secp256k1.PublicKey, sessionKey *secp256k1.Pr
 		// The HMAC for the final hop is simply zeroes. This allows the
 		// last hop to recognize that it is the destination for a
 		// particular payment.
-		hopsData[i].HMAC = nextHmac
+		paymentPath[i].HopData.HMAC = nextHmac
 
 		// Next, using the key dedicated for our stream cipher, we'll
 		// generate enough bytes to obfuscate this layer of the onion
@@ -337,7 +339,8 @@ func NewOnionPacket(paymentPath []*secp256k1.PublicKey, sessionKey *secp256k1.Pr
 		// With the mix header right-shifted, we'll encode the current
 		// hop data into a buffer we'll re-use during the packet
 		// construction.
-		if err := hopsData[i].Encode(&hopDataBuf); err != nil {
+		err := paymentPath[i].HopData.Encode(&hopDataBuf)
+		if err != nil {
 			return nil, err
 		}
 		copy(mixHeader[:], hopDataBuf.Bytes())
