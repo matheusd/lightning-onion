@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/btcsuite/btcd/btcec"
+	"github.com/decred/dcrd/dcrec/secp256k1"
 )
 
 var (
@@ -14,9 +14,9 @@ var (
 
 func BenchmarkPathPacketConstruction(b *testing.B) {
 	b.StopTimer()
-	route := make([]*btcec.PublicKey, NumMaxHops)
+	route := make([]*secp256k1.PublicKey, NumMaxHops)
 	for i := 0; i < NumMaxHops; i++ {
-		privKey, err := btcec.NewPrivateKey(btcec.S256())
+		privKey, err := secp256k1.GeneratePrivateKey()
 		if err != nil {
 			b.Fatalf("unable to generate key: %v", privKey)
 		}
@@ -39,7 +39,7 @@ func BenchmarkPathPacketConstruction(b *testing.B) {
 		copy(hopsData[i].NextAddress[:], bytes.Repeat([]byte{byte(i)}, 8))
 	}
 
-	d, _ := btcec.PrivKeyFromBytes(btcec.S256(), bytes.Repeat([]byte{'A'}, 32))
+	d, _ := secp256k1.PrivKeyFromBytes(bytes.Repeat([]byte{'A'}, 32))
 	b.ReportAllocs()
 	b.StartTimer()
 

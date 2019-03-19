@@ -7,9 +7,9 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/btcsuite/btcd/btcec"
-	"github.com/btcsuite/btcd/chaincfg"
 	"github.com/davecgh/go-spew/spew"
+	"github.com/decred/dcrd/chaincfg"
+	"github.com/decred/dcrd/dcrec/secp256k1"
 )
 
 // BOLT 4 Test Vectors
@@ -91,7 +91,7 @@ func newTestRoute(numHops int) ([]*Router, *[]HopData, *OnionPacket, error) {
 
 	// Create numHops random sphinx nodes.
 	for i := 0; i < len(nodes); i++ {
-		privKey, err := btcec.NewPrivateKey(btcec.S256())
+		privKey, err := secp256k1.GeneratePrivateKey()
 		if err != nil {
 			return nil, nil, nil, fmt.Errorf("Unable to generate"+
 				" random key for sphinx node: %v", err)
@@ -102,7 +102,7 @@ func newTestRoute(numHops int) ([]*Router, *[]HopData, *OnionPacket, error) {
 	}
 
 	// Gather all the pub keys in the path.
-	route := make([]*btcec.PublicKey, len(nodes))
+	route := make([]*secp256k1.PublicKey, len(nodes))
 	for i := 0; i < len(nodes); i++ {
 		route[i] = nodes[i].onionKey.PubKey()
 	}
@@ -121,7 +121,7 @@ func newTestRoute(numHops int) ([]*Router, *[]HopData, *OnionPacket, error) {
 	// Generate a forwarding message to route to the final node via the
 	// generated intermdiates nodes above.  Destination should be Hash160,
 	// adding padding so parsing still works.
-	sessionKey, _ := btcec.PrivKeyFromBytes(btcec.S256(), bytes.Repeat([]byte{'A'}, 32))
+	sessionKey, _ := secp256k1.PrivKeyFromBytes(bytes.Repeat([]byte{'A'}, 32))
 	fwdMsg, err := NewOnionPacket(route, sessionKey, hopsData, nil)
 	if err != nil {
 		return nil, nil, nil, fmt.Errorf("Unable to create forwarding "+
@@ -132,14 +132,14 @@ func newTestRoute(numHops int) ([]*Router, *[]HopData, *OnionPacket, error) {
 }
 
 func TestBolt4Packet(t *testing.T) {
-	var route = make([]*btcec.PublicKey, len(bolt4PubKeys))
+	var route = make([]*secp256k1.PublicKey, len(bolt4PubKeys))
 	for i, pubKeyHex := range bolt4PubKeys {
 		pubKeyBytes, err := hex.DecodeString(pubKeyHex)
 		if err != nil {
 			t.Fatalf("unable to decode BOLT 4 hex pubkey #%d: %v", i, err)
 		}
 
-		route[i], err = btcec.ParsePubKey(pubKeyBytes, btcec.S256())
+		route[i], err = secp256k1.ParsePubKey(pubKeyBytes)
 		if err != nil {
 			t.Fatalf("unable to parse BOLT 4 pubkey #%d: %v", i, err)
 		}
@@ -161,7 +161,7 @@ func TestBolt4Packet(t *testing.T) {
 		copy(hopsData[i].NextAddress[:], bytes.Repeat([]byte{byte(i)}, 8))
 	}
 
-	sessionKey, _ := btcec.PrivKeyFromBytes(btcec.S256(), bolt4SessionKey)
+	sessionKey, _ := secp256k1.PrivKeyFromBytes(bolt4SessionKey)
 	pkt, err := NewOnionPacket(route, sessionKey, hopsData, bolt4AssocData)
 	if err != nil {
 		t.Fatalf("unable to construct onion packet: %v", err)

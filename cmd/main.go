@@ -9,9 +9,9 @@ import (
 	"os"
 	"strings"
 
-	sphinx "github.com/lightningnetwork/lightning-onion"
-	"github.com/btcsuite/btcd/btcec"
-	"github.com/btcsuite/btcd/chaincfg"
+	"github.com/decred/dcrd/chaincfg"
+	"github.com/decred/dcrd/dcrec/secp256k1"
+	sphinx "github.com/decred/lightning-onion"
 )
 
 // main implements a simple command line utility that can be used in order to
@@ -25,14 +25,14 @@ func main() {
 	if len(args) == 1 {
 		fmt.Printf("Usage: %s (generate|decode) <private-keys>\n", args[0])
 	} else if args[1] == "generate" {
-		var route []*btcec.PublicKey
+		var route []*secp256k1.PublicKey
 		for i, hexKey := range args[2:] {
 			binKey, err := hex.DecodeString(hexKey)
 			if err != nil || len(binKey) != 33 {
 				log.Fatalf("%s is not a valid hex pubkey %s", hexKey, err)
 			}
 
-			pubkey, err := btcec.ParsePubKey(binKey, btcec.S256())
+			pubkey, err := secp256k1.ParsePubKey(binKey)
 			if err != nil {
 				panic(err)
 			}
@@ -41,7 +41,7 @@ func main() {
 			fmt.Fprintf(os.Stderr, "Node %d pubkey %x\n", i, pubkey.SerializeCompressed())
 		}
 
-		sessionKey, _ := btcec.PrivKeyFromBytes(btcec.S256(), bytes.Repeat([]byte{'A'}, 32))
+		sessionKey, _ := secp256k1.PrivKeyFromBytes(bytes.Repeat([]byte{'A'}, 32))
 
 		var hopsData []sphinx.HopData
 		for i := 0; i < len(route); i++ {
@@ -78,7 +78,7 @@ func main() {
 			log.Fatalf("Error decoding message: %s", err)
 		}
 
-		privkey, _ := btcec.PrivKeyFromBytes(btcec.S256(), binKey)
+		privkey, _ := secp256k1.PrivKeyFromBytes(binKey)
 		s := sphinx.NewRouter(privkey, &chaincfg.TestNet3Params,
 			sphinx.NewMemoryReplayLog())
 
