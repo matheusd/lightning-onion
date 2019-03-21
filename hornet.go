@@ -1,7 +1,7 @@
 package sphinx
 
 import (
-	"github.com/btcsuite/btcd/btcec"
+	"github.com/decred/dcrd/dcrec/secp256k1"
 	"golang.org/x/crypto/ripemd160"
 )
 
@@ -45,7 +45,7 @@ const fSLength = 48
 // imaginary network, I guess). But, looking like they'll be (20 + 33 bytes)
 // 53 bytes. Or 52 if we use curve25519
 type routingSegment struct {
-	nextHop *btcec.PublicKey // NOTE: or, is this a LN addr? w/e that is?
+	nextHop *secp256k1.PublicKey // NOTE: or, is this a LN addr? w/e that is?
 	// nextHop [32]byte
 	rCommitment [ripemd160.Size]byte
 

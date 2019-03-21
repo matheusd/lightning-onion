@@ -6,23 +6,22 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/btcsuite/btcd/btcec"
+	"github.com/decred/dcrd/dcrec/secp256k1"
 )
 
 // TestOnionFailure checks the ability of sender of payment to decode the
 // obfuscated onion error.
 func TestOnionFailure(t *testing.T) {
 	// Create numHops random sphinx paymentPath.
-	paymentPath := make([]*btcec.PublicKey, 5)
+	paymentPath := make([]*secp256k1.PublicKey, 5)
 	for i := 0; i < len(paymentPath); i++ {
-		privKey, err := btcec.NewPrivateKey(btcec.S256())
+		privKey, err := secp256k1.GeneratePrivateKey()
 		if err != nil {
 			t.Fatalf("unable to generate random key for sphinx node: %v", err)
 		}
 		paymentPath[i] = privKey.PubKey()
 	}
-	sessionKey, _ := btcec.PrivKeyFromBytes(btcec.S256(),
-		bytes.Repeat([]byte{'A'}, 32))
+	sessionKey, _ := secp256k1.PrivKeyFromBytes(bytes.Repeat([]byte{'A'}, 32))
 
 	// Reduce the error path on one node, in order to check that we are
 	// able to receive the error not only from last hop.
@@ -127,7 +126,7 @@ var onionErrorData = []struct {
 	},
 }
 
-func getSpecPubKeys() ([]*btcec.PublicKey, error) {
+func getSpecPubKeys() ([]*secp256k1.PublicKey, error) {
 	specPubKeys := []string{
 		"02eec7245d6b7d2ccb30380bfbe2a3648cd7a942653f5aa340edcea1f283686619",
 		"0324653eac434488002cc06bbfb7f10fe18991e35f9fe4302dbea6d2353dc0ab1c",
@@ -136,14 +135,14 @@ func getSpecPubKeys() ([]*btcec.PublicKey, error) {
 		"02edabbd16b41c8371b92ef2f04c1185b4f03b6dcd52ba9b78d9d7c89c8f221145",
 	}
 
-	keys := make([]*btcec.PublicKey, len(specPubKeys))
+	keys := make([]*secp256k1.PublicKey, len(specPubKeys))
 	for i, sKey := range specPubKeys {
 		bKey, err := hex.DecodeString(sKey)
 		if err != nil {
 			return nil, err
 		}
 
-		key, err := btcec.ParsePubKey(bKey, btcec.S256())
+		key, err := secp256k1.ParsePubKey(bKey)
 		if err != nil {
 			return nil, err
 		}
@@ -152,14 +151,14 @@ func getSpecPubKeys() ([]*btcec.PublicKey, error) {
 	return keys, nil
 }
 
-func getSpecSessionKey() (*btcec.PrivateKey, error) {
+func getSpecSessionKey() (*secp256k1.PrivateKey, error) {
 	bKey, err := hex.DecodeString("4141414141414141414141414141414141414" +
 		"141414141414141414141414141")
 	if err != nil {
 		return nil, err
 	}
 
-	privKey, _ := btcec.PrivKeyFromBytes(btcec.S256(), bKey)
+	privKey, _ := secp256k1.PrivKeyFromBytes(bKey)
 	return privKey, nil
 }
 

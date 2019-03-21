@@ -1,10 +1,10 @@
 # lightning-onion
 This repository houses an implementation of the [Lightning
-Network's](lightning.network) onion routing protocol. The Lightning Network
-uses onion routing to securely, and privately route HTLC's
-(Hash-Time-Locked-Contracts, basically a conditional payment) within the
-network.  (A full specification of the protocol can be found amongst the
-lighting-rfc repository, specifically within
+Network's](lightning.network) onion routing protocol, adapted to the
+[Decred](https://decred.org) network. The Lightning Network uses onion routing
+to securely, and privately route HTLC's (Hash-Time-Locked-Contracts, basically a
+conditional payment) within the network.  (A full specification of the protocol
+can be found amongst the lighting-rfc repository, specifically within
 [BOLT#04](https://github.com/lightningnetwork/lightning-rfc/blob/master/04-onion-routing.md).
 
 The Lightning Network is composed of a series of "payment channels" which are

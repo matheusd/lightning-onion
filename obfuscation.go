@@ -7,7 +7,7 @@ import (
 	"errors"
 	"io"
 
-	"github.com/btcsuite/btcd/btcec"
+	"github.com/decred/dcrd/dcrec/secp256k1"
 )
 
 // onionEncrypt obfuscates the data with compliance with BOLT#4. As we use a
@@ -34,7 +34,7 @@ type OnionErrorEncrypter struct {
 // the passed router, with encryption to be doing using the passed
 // ephemeralKey.
 func NewOnionErrorEncrypter(router *Router,
-	ephemeralKey *btcec.PublicKey) (*OnionErrorEncrypter, error) {
+	ephemeralKey *secp256k1.PublicKey) (*OnionErrorEncrypter, error) {
 
 	sharedSecret, err := router.generateSharedSecret(ephemeralKey)
 	if err != nil {
@@ -85,10 +85,10 @@ func (o *OnionErrorEncrypter) Decode(r io.Reader) error {
 type Circuit struct {
 	// SessionKey is the key which have been used during generation of the
 	// shared secrets.
-	SessionKey *btcec.PrivateKey
+	SessionKey *secp256k1.PrivateKey
 
 	// PaymentPath is the pub keys of the nodes in the payment path.
-	PaymentPath []*btcec.PublicKey
+	PaymentPath []*secp256k1.PublicKey
 }
 
 // Decode initializes the circuit from the byte stream.
@@ -103,20 +103,20 @@ func (c *Circuit) Decode(r io.Reader) error {
 		return err
 	}
 
-	c.SessionKey, _ = btcec.PrivKeyFromBytes(btcec.S256(), sessionKeyData)
+	c.SessionKey, _ = secp256k1.PrivKeyFromBytes(sessionKeyData)
 	var pathLength [1]byte
 	if _, err := r.Read(pathLength[:]); err != nil {
 		return err
 	}
-	c.PaymentPath = make([]*btcec.PublicKey, uint8(pathLength[0]))
+	c.PaymentPath = make([]*secp256k1.PublicKey, uint8(pathLength[0]))
 
 	for i := 0; i < len(c.PaymentPath); i++ {
-		var pubKeyData [btcec.PubKeyBytesLenCompressed]byte
+		var pubKeyData [secp256k1.PubKeyBytesLenCompressed]byte
 		if _, err := r.Read(pubKeyData[:]); err != nil {
 			return err
 		}
 
-		pubKey, err := btcec.ParsePubKey(pubKeyData[:], btcec.S256())
+		pubKey, err := secp256k1.ParsePubKey(pubKeyData[:])
 		if err != nil {
 			return err
 		}
@@ -170,7 +170,7 @@ func NewOnionErrorDecrypter(circuit *Circuit) *OnionErrorDecrypter {
 // onion failure is encrypted in backward manner, starting from the node where
 // error have occurred. As a result, in order to decrypt the error we need get
 // all shared secret and apply decryption in the reverse order.
-func (o *OnionErrorDecrypter) DecryptError(encryptedData []byte) (*btcec.PublicKey, []byte, error) {
+func (o *OnionErrorDecrypter) DecryptError(encryptedData []byte) (*secp256k1.PublicKey, []byte, error) {
 
 	sharedSecrets := generateSharedSecrets(
 		o.circuit.PaymentPath,
@@ -178,7 +178,7 @@ func (o *OnionErrorDecrypter) DecryptError(encryptedData []byte) (*btcec.PublicK
 	)
 
 	var (
-		sender      *btcec.PublicKey
+		sender      *secp256k1.PublicKey
 		msg         []byte
 		dummySecret Hash256
 	)
