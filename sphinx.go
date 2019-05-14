@@ -270,7 +270,6 @@ func NewOnionPacket(paymentPath *PaymentPath, sessionKey *secp256k1.PrivateKey,
 		packet := append(mixHeader[:], assocData...)
 		nextHmac = calcMac(muKey, packet)
 
-		hopDataBuf.Reset()
 		hopPayloadBuf.Reset()
 	}
 
