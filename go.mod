@@ -9,5 +9,6 @@ require (
 	github.com/decred/dcrd/dcrec v1.0.0
 	github.com/decred/dcrd/dcrec/secp256k1 v1.0.2
 	github.com/decred/dcrd/dcrutil v1.3.0
+	github.com/decred/dcrd/wire v1.2.0
 	github.com/decred/slog v1.0.0
 )
