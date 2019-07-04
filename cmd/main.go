@@ -65,9 +65,7 @@ func parseOnionSpec(spec OnionSpec) (*sphinx.PaymentPath, *secp256k1.PrivateKey,
 				hop.Payload, err)
 		}
 
-		hopPayload, err := sphinx.NewHopPayload(
-			byte(hop.Realm), nil, payload,
-		)
+		hopPayload, err := sphinx.NewHopPayload(nil, payload)
 		if err != nil {
 			log.Fatalf("unable to make payload: %v", err)
 		}
@@ -135,11 +133,11 @@ func main() {
 		}
 
 		privkey, _ := secp256k1.PrivKeyFromBytes(binKey)
-		replay_log := sphinx.NewMemoryReplayLog()
-		s := sphinx.NewRouter(privkey, &chaincfg.TestNet3Params, replay_log)
+		replayLog := sphinx.NewMemoryReplayLog()
+		s := sphinx.NewRouter(privkey, &chaincfg.TestNet3Params, replayLog)
 
-		replay_log.Start()
-		defer replay_log.Stop()
+		replayLog.Start()
+		defer replayLog.Stop()
 
 		var packet sphinx.OnionPacket
 		err = packet.Decode(bytes.NewBuffer(binMsg))
