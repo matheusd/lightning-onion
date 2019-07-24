@@ -210,7 +210,8 @@ func (hp *HopPayload) Encode(w io.Writer) error {
 	// For the TLV payload, we'll first prepend the length of the payload
 	// as a var-int.
 	case PayloadTLV:
-		err := wire.WriteVarInt(w, 0, uint64(len(hp.Payload)))
+		var b [8]byte
+		err := WriteVarInt(w, uint64(len(hp.Payload)), &b)
 		if err != nil {
 			return err
 		}
@@ -254,7 +255,8 @@ func (hp *HopPayload) Decode(r io.Reader) error {
 	default:
 		// Otherwise, this is the new TLV based payload type, so we'll
 		// extract the payload length encoded as a var-int.
-		varInt, err := wire.ReadVarInt(bufReader, 0)
+		var b [8]byte
+		varInt, err := ReadVarInt(bufReader, &b)
 		if err != nil {
 			return err
 		}
