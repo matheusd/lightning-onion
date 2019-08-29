@@ -532,7 +532,7 @@ func newEOBRoute(numHops uint32,
 	// First, we'll assemble a set of routers that will consume all the
 	// hops we create in this path.
 	for i := 0; i < len(nodes); i++ {
-		privKey, err := btcec.NewPrivateKey(btcec.S256())
+		privKey, err := secp256k1.GeneratePrivateKey()
 		if err != nil {
 			return nil, nil, fmt.Errorf("Unable to generate "+
 				"random key for sphinx node: %v", err)
@@ -558,8 +558,8 @@ func newEOBRoute(numHops uint32,
 	// Generate a forwarding message to route to the final node via the
 	// generated intermdiates nodes above.  Destination should be Hash160,
 	// adding padding so parsing still works.
-	sessionKey, _ := btcec.PrivKeyFromBytes(
-		btcec.S256(), bytes.Repeat([]byte{'A'}, 32),
+	sessionKey, _ := secp256k1.PrivKeyFromBytes(
+		bytes.Repeat([]byte{'A'}, 32),
 	)
 	fwdMsg, err := NewOnionPacket(&route, sessionKey, nil)
 	if err != nil {
@@ -846,7 +846,7 @@ func TestVariablePayloadOnion(t *testing.T) {
 		if err != nil {
 			t.Fatalf("unable to decode pubkey: %v", err)
 		}
-		pubKey, err := btcec.ParsePubKey(pubKeyBytes, btcec.S256())
+		pubKey, err := secp256k1.ParsePubKey(pubKeyBytes)
 		if err != nil {
 			t.Fatalf("unable to parse BOLT 4 pubkey #%d: %v", i, err)
 		}
@@ -893,7 +893,7 @@ func TestVariablePayloadOnion(t *testing.T) {
 	}
 
 	// With all the required data assembled, we'll craft a new packet.
-	sessionKey, _ := btcec.PrivKeyFromBytes(btcec.S256(), sessionKeyBytes)
+	sessionKey, _ := secp256k1.PrivKeyFromBytes(sessionKeyBytes)
 	pkt, err := NewOnionPacket(&route, sessionKey, associatedData)
 	if err != nil {
 		t.Fatalf("unable to construct onion packet: %v", err)
