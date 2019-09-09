@@ -596,7 +596,7 @@ func TestSphinxHopVariableSizedPayloads(t *testing.T) {
 		{
 			numNodes: 1,
 			eobMapping: map[int]HopPayload{
-				0: HopPayload{
+				0: {
 					Type:    PayloadTLV,
 					Payload: bytes.Repeat([]byte("a"), HopDataSize-HMACSize),
 				},
@@ -608,7 +608,7 @@ func TestSphinxHopVariableSizedPayloads(t *testing.T) {
 		{
 			numNodes: 1,
 			eobMapping: map[int]HopPayload{
-				0: HopPayload{
+				0: {
 					Type:    PayloadTLV,
 					Payload: bytes.Repeat([]byte("a"), HopDataSize*3),
 				},
@@ -629,7 +629,7 @@ func TestSphinxHopVariableSizedPayloads(t *testing.T) {
 					OutgoingCltv:  3,
 					NextAddress:   [8]byte{1, 1, 1, 1, 1, 1, 1, 1},
 				}, nil),
-				1: HopPayload{
+				1: {
 					Type:    PayloadTLV,
 					Payload: bytes.Repeat([]byte("a"), HopDataSize*2),
 				},
@@ -642,7 +642,7 @@ func TestSphinxHopVariableSizedPayloads(t *testing.T) {
 		{
 			numNodes: 3,
 			eobMapping: map[int]HopPayload{
-				0: HopPayload{
+				0: {
 					Type:    PayloadTLV,
 					Payload: bytes.Repeat([]byte("a"), 100),
 				},
@@ -652,7 +652,7 @@ func TestSphinxHopVariableSizedPayloads(t *testing.T) {
 					OutgoingCltv:  9,
 					NextAddress:   [8]byte{1, 1, 1, 1, 1, 1, 1, 1},
 				}, nil),
-				2: HopPayload{
+				2: {
 					Type:    PayloadTLV,
 					Payload: bytes.Repeat([]byte("a"), 256),
 				},
@@ -664,15 +664,15 @@ func TestSphinxHopVariableSizedPayloads(t *testing.T) {
 		{
 			numNodes: 3,
 			eobMapping: map[int]HopPayload{
-				0: HopPayload{
+				0: {
 					Type:    PayloadTLV,
 					Payload: bytes.Repeat([]byte("a"), 200),
 				},
-				1: HopPayload{
+				1: {
 					Type:    PayloadTLV,
 					Payload: bytes.Repeat([]byte("a"), 256),
 				},
-				2: HopPayload{
+				2: {
 					Type:    PayloadTLV,
 					Payload: bytes.Repeat([]byte("a"), 150),
 				},
@@ -906,7 +906,7 @@ func TestVariablePayloadOnion(t *testing.T) {
 
 	// Finally, we expect that our packet matches the packet included in
 	// the spec's test vectors.
-	if bytes.Compare(b.Bytes(), finalPacket) != 0 {
+	if !bytes.Equal(b.Bytes(), finalPacket) {
 		t.Fatalf("final packet does not match expected BOLT 4 packet, "+
 			"want: %s, got %s", hex.EncodeToString(finalPacket),
 			hex.EncodeToString(b.Bytes()))

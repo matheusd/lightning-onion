@@ -192,7 +192,7 @@ func (hp *HopPayload) NumBytes() int {
 	// of bytes that it would take to encode the size of the payload.
 	if hp.Type == PayloadTLV {
 		payloadSize := len(hp.Payload)
-		size += int(wire.VarIntSerializeSize(uint64(payloadSize)))
+		size += wire.VarIntSerializeSize(uint64(payloadSize))
 	}
 
 	return size
