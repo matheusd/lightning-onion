@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/decred/dcrd/dcrec/secp256k1"
+	"github.com/decred/dcrd/dcrec/secp256k1/v2"
 )
 
 var (

@@ -10,9 +10,8 @@ import (
 
 	"github.com/decred/dcrd/dcrec"
 
-	"github.com/decred/dcrd/chaincfg"
-	"github.com/decred/dcrd/dcrec/secp256k1"
-	"github.com/decred/dcrd/dcrutil"
+	"github.com/decred/dcrd/dcrec/secp256k1/v2"
+	"github.com/decred/dcrd/dcrutil/v2"
 )
 
 const (
@@ -464,7 +463,7 @@ type Router struct {
 
 // NewRouter creates a new instance of a Sphinx onion Router given the node's
 // currently advertised onion private key, and the target Bitcoin network.
-func NewRouter(nodeKey *secp256k1.PrivateKey, net *chaincfg.Params, log ReplayLog) *Router {
+func NewRouter(nodeKey *secp256k1.PrivateKey, net dcrutil.AddressParams, log ReplayLog) *Router {
 	var nodeID [AddressSize]byte
 	copy(nodeID[:], dcrutil.Hash160(nodeKey.PubKey().SerializeCompressed()))
 

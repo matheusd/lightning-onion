@@ -10,8 +10,8 @@ import (
 	"testing"
 
 	"github.com/davecgh/go-spew/spew"
-	"github.com/decred/dcrd/chaincfg"
-	"github.com/decred/dcrd/dcrec/secp256k1"
+	"github.com/decred/dcrd/chaincfg/v2"
+	"github.com/decred/dcrd/dcrec/secp256k1/v2"
 )
 
 // BOLT 4 Test Vectors
@@ -91,6 +91,8 @@ var (
 func newTestRoute(numHops int) ([]*Router, *PaymentPath, *[]HopData, *OnionPacket, error) {
 	nodes := make([]*Router, numHops)
 
+	netParams := chaincfg.MainNetParams()
+
 	// Create numHops random sphinx nodes.
 	for i := 0; i < len(nodes); i++ {
 		privKey, err := secp256k1.GeneratePrivateKey()
@@ -100,7 +102,7 @@ func newTestRoute(numHops int) ([]*Router, *PaymentPath, *[]HopData, *OnionPacke
 		}
 
 		nodes[i] = NewRouter(
-			privKey, &chaincfg.MainNetParams, NewMemoryReplayLog(),
+			privKey, netParams, NewMemoryReplayLog(),
 		)
 	}
 
@@ -531,6 +533,7 @@ func newEOBRoute(numHops uint32,
 
 	// First, we'll assemble a set of routers that will consume all the
 	// hops we create in this path.
+	netParams := chaincfg.MainNetParams()
 	for i := 0; i < len(nodes); i++ {
 		privKey, err := secp256k1.GeneratePrivateKey()
 		if err != nil {
@@ -539,7 +542,7 @@ func newEOBRoute(numHops uint32,
 		}
 
 		nodes[i] = NewRouter(
-			privKey, &chaincfg.MainNetParams, NewMemoryReplayLog(),
+			privKey, netParams, NewMemoryReplayLog(),
 		)
 	}
 

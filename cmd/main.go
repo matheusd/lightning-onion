@@ -10,9 +10,9 @@ import (
 	"os"
 	"strings"
 
-	"github.com/decred/dcrd/chaincfg"
-	"github.com/decred/dcrd/dcrec/secp256k1"
-	sphinx "github.com/decred/lightning-onion"
+	"github.com/decred/dcrd/chaincfg/v2"
+	"github.com/decred/dcrd/dcrec/secp256k1/v2"
+	sphinx "github.com/decred/lightning-onion/v2"
 )
 
 type OnionHopSpec struct {
@@ -134,7 +134,7 @@ func main() {
 
 		privkey, _ := secp256k1.PrivKeyFromBytes(binKey)
 		replayLog := sphinx.NewMemoryReplayLog()
-		s := sphinx.NewRouter(privkey, &chaincfg.TestNet3Params, replayLog)
+		s := sphinx.NewRouter(privkey, chaincfg.TestNet3Params(), replayLog)
 
 		replayLog.Start()
 		defer replayLog.Stop()

@@ -3,7 +3,7 @@ package sphinx
 import (
 	"io"
 
-	"github.com/decred/dcrd/dcrec/secp256k1"
+	"github.com/decred/dcrd/dcrec/secp256k1/v2"
 )
 
 // OnionErrorEncrypter is a struct that's used to implement onion error
