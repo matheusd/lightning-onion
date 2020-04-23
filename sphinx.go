@@ -131,7 +131,8 @@ func generateSharedSecrets(paymentPath []*secp256k1.PublicKey,
 	// Within the loop each new triplet will be computed recursively based
 	// off of the blinding factor of the last hop.
 	lastEphemeralPubKey := sessionKey.PubKey()
-	sharedSecret, err := generateSharedSecret(paymentPath[0], sessionKey)
+	sessionKeyECDH := &PrivKeyECDH{PrivKey: sessionKey}
+	sharedSecret, err := sessionKeyECDH.ECDH(paymentPath[0])
 	if err != nil {
 		return nil, err
 	}
@@ -488,14 +489,14 @@ type Router struct {
 	nodeID   [AddressSize]byte
 	nodeAddr *dcrutil.AddressPubKeyHash
 
-	onionKey *secp256k1.PrivateKey
+	onionKey SingleKeyECDH
 
 	log ReplayLog
 }
 
 // NewRouter creates a new instance of a Sphinx onion Router given the node's
 // currently advertised onion private key, and the target Bitcoin network.
-func NewRouter(nodeKey *secp256k1.PrivateKey, net dcrutil.AddressParams, log ReplayLog) *Router {
+func NewRouter(nodeKey SingleKeyECDH, net dcrutil.AddressParams, log ReplayLog) *Router {
 	var nodeID [AddressSize]byte
 	copy(nodeID[:], dcrutil.Hash160(nodeKey.PubKey().SerializeCompressed()))
 
