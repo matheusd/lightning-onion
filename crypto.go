@@ -22,6 +22,70 @@ const (
 // the output of a SHA256 hash.
 type Hash256 [sha256.Size]byte
 
+// SingleKeyECDH is an abstraction interface that hides the implementation of an
+// ECDH operation against a specific private key. We use this abstraction for
+// the long term keys which we eventually want to be able to keep in a hardware
+// wallet or HSM.
+type SingleKeyECDH interface {
+	// PubKey returns the public key of the private key that is abstracted
+	// away by the interface.
+	PubKey() *secp256k1.PublicKey
+
+	// ECDH performs a scalar multiplication (ECDH-like operation) between
+	// the abstracted private key and a remote public key. The output
+	// returned will be the sha256 of the resulting shared point serialized
+	// in compressed format.
+	ECDH(pubKey *secp256k1.PublicKey) ([32]byte, error)
+}
+
+// PrivKeyECDH is an implementation of the SingleKeyECDH in which we do have the
+// full private key. This can be used to wrap a temporary key to conform to the
+// SingleKeyECDH interface.
+type PrivKeyECDH struct {
+	// PrivKey is the private key that is used for the ECDH operation.
+	PrivKey *secp256k1.PrivateKey
+}
+
+// PubKey returns the public key of the private key that is abstracted away by
+// the interface.
+//
+// NOTE: This is part of the SingleKeyECDH interface.
+func (p *PrivKeyECDH) PubKey() *secp256k1.PublicKey {
+	return p.PrivKey.PubKey()
+}
+
+// ECDH performs a scalar multiplication (ECDH-like operation) between the
+// abstracted private key and a remote public key. The output returned will be
+// the sha256 of the resulting shared point serialized in compressed format. If
+// k is our private key, and P is the public key, we perform the following
+// operation:
+//
+//  sx := k*P
+//  s := sha256(sx.SerializeCompressed())
+//
+// NOTE: This is part of the SingleKeyECDH interface.
+func (p *PrivKeyECDH) ECDH(pub *secp256k1.PublicKey) ([32]byte, error) {
+	// Privkey to ModNScalar.
+	var privKeyModn secp256k1.ModNScalar
+	privKeyModn.SetByteSlice(p.PrivKey.Serialize())
+
+	// Pubkey to JacobianPoint.
+	var pubJacobian, res secp256k1.JacobianPoint
+	pub.AsJacobian(&pubJacobian)
+
+	// Calculate shared point and ensure it's on the curve.
+	secp256k1.ScalarMultNonConst(&privKeyModn, &pubJacobian, &res)
+	res.ToAffine()
+	sharedPub := secp256k1.NewPublicKey(&res.X, &res.Y)
+	if !sharedPub.IsOnCurve() {
+		return [32]byte{}, fmt.Errorf("Derived ECDH point is not on the secp256k1 curve")
+	}
+
+	// Hash of the serialized point is the shared secret.
+	h := sha256.Sum256(sharedPub.SerializeCompressed())
+	return h, nil
+}
+
 // DecryptedError contains the decrypted error message and its sender.
 type DecryptedError struct {
 	// Sender is the node that sent the error. Note that a node may occur in
